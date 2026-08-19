@@ -1,0 +1,19 @@
+# Without this the build context is hundreds of MB and every build is slow.
+node_modules
+**/node_modules
+.git
+.next
+**/.next
+.turbo
+**/.turbo
+dist
+**/dist
+services/bin
+coverage
+test-results
+playwright-report
+.env
+.env.*
+!.env.example
+**/*.md
+!README.md

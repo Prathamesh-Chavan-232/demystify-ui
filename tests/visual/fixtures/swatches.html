@@ -1,0 +1,60 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>swatch fixture</title>
+<!--
+  Fixture page for visual regression. Every visual property resolves through a
+  CSS custom property on :root — no hardcoded color, radius, or spacing value.
+  Swapping the :root block is the entire theming mechanism.
+-->
+<style>
+  :root {
+    --ds-bg: oklch(0.99 0.002 250);
+    --ds-fg: oklch(0.22 0.01 250);
+    --ds-surface: oklch(0.96 0.006 250);
+    --ds-border: oklch(0.88 0.01 250);
+    --ds-accent-solid: oklch(0.62 0.17 250);
+    --ds-accent-fg: oklch(0.99 0.005 250);
+    --ds-radius-md: 8px;
+    --ds-space-3: 12px;
+    --ds-space-4: 16px;
+    --ds-font: system-ui, sans-serif;
+  }
+  body {
+    margin: 0;
+    padding: var(--ds-space-4);
+    background: var(--ds-bg);
+    color: var(--ds-fg);
+    font-family: var(--ds-font);
+  }
+  .row {
+    display: flex;
+    gap: var(--ds-space-3);
+    margin-bottom: var(--ds-space-3);
+  }
+  .chip {
+    width: 96px;
+    height: 64px;
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-surface);
+  }
+  .chip--accent {
+    background: var(--ds-accent-solid);
+  }
+  .btn {
+    padding: var(--ds-space-3) var(--ds-space-4);
+    border: none;
+    border-radius: var(--ds-radius-md);
+    background: var(--ds-accent-solid);
+    color: var(--ds-accent-fg);
+    font: inherit;
+  }
+</style>
+<div class="row">
+  <div class="chip"></div>
+  <div class="chip chip--accent"></div>
+  <div class="chip"></div>
+</div>
+<div class="row">
+  <button class="btn">Export theme</button>
+</div>

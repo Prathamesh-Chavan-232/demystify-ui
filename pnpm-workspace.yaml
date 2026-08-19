@@ -1,0 +1,18 @@
+packages:
+  - 'packages/*'
+  - 'apps/*'
+  - 'services'
+  - 'tests/visual'
+
+# Single source of truth for shared tool versions; packages reference these
+# as "catalog:" so they can never drift apart.
+catalog:
+  typescript: 7.0.2
+  vitest: 4.1.11
+  '@playwright/test': 1.58.0
+
+# Lifted from the nested apps/web/pnpm-workspace.yaml that create-next-app
+# generated; pnpm 10 keeps these settings at the workspace root.
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver

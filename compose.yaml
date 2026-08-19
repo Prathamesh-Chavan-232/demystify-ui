@@ -1,0 +1,117 @@
+name: demystify
+
+# IN-NETWORK database URL. .env / .env.example carry the *host* form
+# (localhost:5432) for the web app, the CLI, and host-side sqlc/goose.
+# See PLAN.md "The two-URL footgun".
+x-db-url: &db-url
+  DATABASE_URL: postgres://${POSTGRES_USER:-demystify}:${POSTGRES_PASSWORD:-demystify}@postgres:5432/${POSTGRES_DB:-demystify}
+
+# One Go image serves api, palette and audit; they differ only by `command:`.
+x-go-service: &go-service
+  build:
+    context: ./services
+    dockerfile: Dockerfile
+  depends_on:
+    postgres:
+      condition: service_healthy
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:18.2-trixie@sha256:a688ae5c99f86c1424e046ace0de890608cc0ddb5ec8ef72a6ff8305fdc8f4d2
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-demystify}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-demystify}
+      POSTGRES_DB: ${POSTGRES_DB:-demystify}
+    ports:
+      # Published because the native dev loop connects from the host.
+      - '5432:5432'
+    volumes:
+      # Postgres 18+ wants ONE mount at /var/lib/postgresql; it stores data in a
+      # major-version subdirectory so pg_upgrade --link works. Mounting
+      # /var/lib/postgresql/data directly makes 18 refuse to start.
+      - pgdata:/var/lib/postgresql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      # Required, so dependents can gate on condition: service_healthy.
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-demystify} -d ${POSTGRES_DB:-demystify}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    <<: *go-service
+    command: ['/api']
+    environment:
+      <<: *db-url
+      API_PORT: '8080'
+    ports:
+      - '${API_PORT:-8080}:8080'
+    healthcheck:
+      test: ['CMD', '/api', '-health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  palette:
+    <<: *go-service
+    command: ['/palette']
+    environment:
+      <<: *db-url
+      PALETTE_PORT: '8081'
+    ports:
+      - '${PALETTE_PORT:-8081}:8081'
+    healthcheck:
+      test: ['CMD', '/palette', '-health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  audit:
+    <<: *go-service
+    command: ['/audit']
+    environment:
+      <<: *db-url
+      AUDIT_PORT: '8082'
+    ports:
+      - '${AUDIT_PORT:-8082}:8082'
+    healthcheck:
+      test: ['CMD', '/audit', '-health']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # Profile-gated: `docker compose run --rm migrate up`, never `up`.
+  migrate:
+    profiles: ['tools']
+    build:
+      context: ./docker/goose
+    volumes:
+      - ./services/migrations:/migrations:ro
+    environment:
+      GOOSE_DBSTRING: postgres://${POSTGRES_USER:-demystify}:${POSTGRES_PASSWORD:-demystify}@postgres:5432/${POSTGRES_DB:-demystify}?sslmode=disable
+      GOOSE_DRIVER: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Profile-gated. Digest-pinned Playwright — see tests/visual/Dockerfile.
+  visual:
+    profiles: ['tools']
+    # The Playwright image runs as root; without this, generated baselines and
+    # test-results land root-owned and the host user cannot regenerate them.
+    user: '${UID:-1000}:${GID:-1000}'
+    build:
+      context: ./tests/visual
+    volumes:
+      - .:/repo
+    working_dir: /repo
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

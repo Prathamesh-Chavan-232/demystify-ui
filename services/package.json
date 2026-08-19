@@ -1,0 +1,11 @@
+{
+  "name": "@demystify/services",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Go services (api, palette, audit). Present so Turborepo owns the Go tasks.",
+  "scripts": {
+    "build": "go build -o bin/ ./cmd/...",
+    "test": "go test ./...",
+    "lint": "go vet ./..."
+  }
+}

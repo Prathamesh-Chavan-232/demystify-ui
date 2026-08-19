@@ -1,0 +1,13 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "inputs": ["**/*.go", "go.{mod,sum}"],
+      "outputs": ["bin/**"]
+    },
+    "test": {
+      "inputs": ["**/*.go", "go.{mod,sum}"],
+      "outputs": []
+    }
+  }
+}

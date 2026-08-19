@@ -1,0 +1,17 @@
+# CI overrides: no host port publishing (avoids collisions on shared runners),
+# no restart loops masking a crash, and images tagged by commit SHA.
+services:
+  postgres:
+    ports: !reset []
+  api:
+    ports: !reset []
+    restart: 'no'
+    image: demystify/services:${GIT_SHA:-dev}
+  palette:
+    ports: !reset []
+    restart: 'no'
+    image: demystify/services:${GIT_SHA:-dev}
+  audit:
+    ports: !reset []
+    restart: 'no'
+    image: demystify/services:${GIT_SHA:-dev}

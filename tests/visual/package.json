@@ -1,0 +1,14 @@
+{
+  "name": "@demystify/visual",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Per-adapter render + screenshot diff. MUST run containerized.",
+  "scripts": {
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots"
+  },
+  "devDependencies": {
+    "@playwright/test": "catalog:"
+  }
+}

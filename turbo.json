@@ -1,0 +1,32 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "globalDependencies": ["pnpm-lock.yaml", ".env.example"],
+  "globalEnv": ["NODE_ENV", "DATABASE_URL"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**", "bin/**"]
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "outputs": []
+    },
+    "test:golden": {
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/fixtures/**"],
+      "cache": false
+    },
+    "test:visual": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "typecheck": {
+      "dependsOn": ["^build"]
+    },
+    "lint": {},
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
