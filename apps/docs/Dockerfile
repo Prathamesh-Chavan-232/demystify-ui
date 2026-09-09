@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Build context is the REPO ROOT, not apps/web — turbo prune needs the workspace.
+# Build context is the REPO ROOT, not apps/docs — turbo prune needs the workspace.
 #   docker build -f apps/docs/Dockerfile .
 
 FROM node:22-trixie-slim@sha256:db8a96a63e5264607ada2d206758876ebbed6a12be2ada7517793cbfb0c2a29c AS base
@@ -17,7 +17,11 @@ RUN pnpm dlx turbo@2.10.11 prune @demystify/docs --docker
 FROM base AS deps
 WORKDIR /repo
 COPY --from=pruner /repo/out/json/ ./
-RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile
+# node-linker=hoisted: Next's standalone tracing copies the .pnpm symlink tree
+# but misses transitive deps like @swc/helpers, so the image starts and then
+# dies on MODULE_NOT_FOUND. A flat node_modules traces reliably.
+RUN --mount=type=cache,target=/pnpm/store \
+    pnpm install --frozen-lockfile --config.node-linker=hoisted
 
 # 3. Build.
 FROM base AS builder
